@@ -439,7 +439,7 @@
           </clip>
         </camera>
         <plugin filename="libgazebo_ros_openni_kinect.so" name="camera_controller">
-          <robotNamespace/>
+          <robotNamespace></robotNamespace>
           <cameraName>depth_camera</cameraName>
           <alwaysOn>true</alwaysOn>
           <updateRate>30</updateRate>
@@ -450,7 +450,7 @@
           <depthImageTopicName>depth/image_raw</depthImageTopicName>
           <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
           <pointCloudTopicName>depth/points</pointCloudTopicName>
-          <frameName>depth_camera_link</frameName>
+          <frameName>depth_camera_frame</frameName>
           <pointCloudCutoff>0.5</pointCloudCutoff>
           <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
           <distortion_k1>0.0</distortion_k1>
@@ -545,8 +545,8 @@
             <horizontal>
               <samples>1</samples>
               <resolution>1</resolution>
-              <min_angle>-0</min_angle>
-              <max_angle>0</max_angle>
+              <min_angle>-0.001</min_angle>
+              <max_angle>0.001</max_angle>
             </horizontal>
           </scan>
           <range>
@@ -561,9 +561,9 @@
           </noise>
         </ray>
         <plugin name="gazebo_ros_laser_upward_controller" filename="libgazebo_ros_laser.so">
-          <robotNamespace/>
-          <topicName>/laser_upward/range</topicName>
-          <frameName>laser_upward</frameName>
+          <robotNamespace></robotNamespace>
+          <topicName>laser_upward/scan</topicName>
+          <frameName>laser_upward_frame</frameName>
         </plugin>
       </sensor>
     </link>
@@ -718,9 +718,9 @@
           </noise>
         </ray>
         <plugin name="gazebo_ros_laser_hor_controller" filename="libgazebo_ros_laser.so">
-          <robotNamespace/>
-          <topicName>/laser_hor/range</topicName>
-          <frameName>laser_hor</frameName>
+          <robotNamespace></robotNamespace>
+          <topicName>laser_hor/scan</topicName>
+          <frameName>laser_hor_frame</frameName>
         </plugin>
       </sensor>
     </link>
@@ -810,6 +810,9 @@
 
     <plugin name='groundtruth_plugin' filename='libgazebo_groundtruth_plugin.so'>
       <robotNamespace/>
+      <frameName>map</frameName>
+      <topicName>odom</topicName>
+      <updateRate>30.0</updateRate>
     </plugin>
     <plugin name='magnetometer_plugin' filename='libgazebo_magnetometer_plugin.so'>
       <robotNamespace/>
