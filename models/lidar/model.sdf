@@ -15,17 +15,34 @@
           <izz>1.8e-7</izz>
         </inertia>
       </inertial>
-      <visual name="visual">
+      <collision name='Laser_collision'>
+      	<pose>0 0 0 -1.5707963259 0 1.5707963259</pose>
         <geometry>
-          <cylinder><radius>0.006</radius><length>0.05</length></cylinder>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://lidar/meshes/Tfmini_s.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='Laser_visual'>
+      	<pose>0 0 0 -1.5707963259 0 1.5707963259</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://lidar/meshes/Tfmini_s.STL</uri>
+          </mesh>
         </geometry>
         <material>
           <script>
-            <name>Gazebo/Black</name>
+            <name>Gazebo/White</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
           </script>
         </material>
       </visual>
       <sensor name="laser" type="ray">
+        <always_on>1</always_on>
+        <update_rate>200</update_rate>
+        <visualize>true</visualize>
         <pose>0 0 0 0 1.57079633 0</pose>
         <ray>
           <scan>
@@ -38,23 +55,20 @@
           </scan>
           <range>
             <min>0.06</min> <!-- do not change: use min_distance (below) for realistic behavior (smaller values cause issues) -->
-            <max>35</max>   <!-- do not change: use min_distance (below) for realistic behavior (bigger values cause issues) -->
+            <max>35.0</max>   <!-- do not change: use min_distance (below) for realistic behavior (bigger values cause issues) -->
             <resolution>0.01</resolution>
           </range>
           <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
-            <stddev>0.02</stddev>
+            <stddev>0.06</stddev>
           </noise>
         </ray>
         <plugin name="LaserPlugin" filename="libgazebo_lidar_plugin.so">
           <robotNamespace></robotNamespace>
-          <min_distance>0.2</min_distance>
-          <max_distance>15.0</max_distance>
+          <min_distance>0.3</min_distance>
+          <max_distance>12.0</max_distance>
         </plugin>
-        <always_on>1</always_on>
-        <update_rate>20</update_rate>
-        <visualize>true</visualize>
       </sensor>
     </link>
   </model>

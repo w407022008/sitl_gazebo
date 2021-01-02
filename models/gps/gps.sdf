@@ -78,7 +78,10 @@
         </gps> -->
         <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
           <robotNamespace></robotNamespace>
-          <gpsNoise>true</gpsNoise>
+          <homeLatitude>48.8442</homeLatitude>
+          <homeLongitude>2.3593</homeLongitude>
+          <homeAltitude>0</homeAltitude>
+          <gpsNoise>false</gpsNoise>
           <gpsXYRandomWalk>2.0</gpsXYRandomWalk>
           <gpsZRandomWalk>4.0</gpsZRandomWalk>
           <gpsXYNoiseDensity>2.0e-4</gpsXYNoiseDensity>
