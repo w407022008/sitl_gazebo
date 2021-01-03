@@ -5,7 +5,6 @@
       <uri>model://mav_isir</uri>
     </include>
 
-
 <!--*********************************** downward_px4flow *********************************-->
     <include>
       <uri>model://px4flow</uri>
@@ -23,12 +22,12 @@
         </limit>
       </axis>
     </joint>
+
 <!--*********************************** downward_px4flow_lidar *********************************-->
     <include>
       <uri>model://lidar</uri>
       <pose>0.02 0 0.021 0 0 0</pose>
     </include>
-
     <joint name="lidar_joint" type="fixed">
       <parent>mav_isir::base_link</parent>
       <child>lidar::link</child>
