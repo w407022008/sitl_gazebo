@@ -18,6 +18,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#pragma once
+
 #include <vector>
 #include <regex>
 #include <thread>
@@ -110,20 +113,22 @@ public:
     inline void SetHILStateLevel(bool hil_state_level) {hil_state_level_ = hil_state_level;}
 
 private:
-    bool received_first_actuator_;
+    bool received_actuator_{false};
+    bool received_first_actuator_{false};
     bool armed_;
     Eigen::VectorXd input_reference_;
 
-    void handle_message(mavlink_message_t *msg, bool &received_actuator);
+    void handle_message(mavlink_message_t *msg);
     void acceptConnections();
     
     // Serial interface
-    void do_read();
-    void parse_buffer(const boost::system::error_code& err, std::size_t bytes_t);
-    inline bool is_open(){
-        return serial_dev.is_open();
+    void open_serial();
+    void do_serial_read();
+    void parse_serial_buffer(const boost::system::error_code& err, std::size_t bytes_t);
+    inline bool is_serial_open(){
+        return serial_dev_.is_open();
     }
-    void do_write(bool check_tx_state);
+    void do_serial_write(bool check_tx_state);
 
     static const unsigned n_out_max = 16;
 
@@ -134,60 +139,61 @@ private:
     struct sockaddr_in remote_simulator_addr_;
     socklen_t remote_simulator_addr_len_;
 
-    int qgc_udp_port_;
+    int qgc_udp_port_{kDefaultQGCUdpPort};
     struct sockaddr_in remote_qgc_addr_;
     socklen_t remote_qgc_addr_len_;
     struct sockaddr_in local_qgc_addr_;
-    std::string qgc_addr_;
+    std::string qgc_addr_{"INADDR_ANY"};
     socklen_t local_qgc_addr_len_;
 
-    int sdk_udp_port_;
+    int sdk_udp_port_{kDefaultSDKUdpPort};
     struct sockaddr_in remote_sdk_addr_;
     socklen_t remote_sdk_addr_len_;
     struct sockaddr_in local_sdk_addr_;
     socklen_t local_sdk_addr_len_;
-    std::string sdk_addr_;
+    std::string sdk_addr_{"INADDR_ANY"};
 
-    unsigned char _buf[65535];
+    unsigned char buf_[65535];
     enum FD_TYPES {
         LISTEN_FD,
         CONNECTION_FD,
         N_FDS
     };
     struct pollfd fds_[N_FDS];
-    bool use_tcp_ = false;
-    bool close_conn_ = false;
+    bool use_tcp_{false};
+    bool close_conn_{false};
 
     in_addr_t mavlink_addr_;
-    std::string mavlink_addr_str_;
-    int mavlink_udp_port_; // MAVLink refers to the PX4 simulator interface here
-    int mavlink_tcp_port_; // MAVLink refers to the PX4 simulator interface here
+    std::string mavlink_addr_str_{"INADDR_ANY"};
+    int mavlink_udp_port_{kDefaultMavlinkUdpPort}; // MAVLink refers to the PX4 simulator interface here
+    int mavlink_tcp_port_{kDefaultMavlinkTcpPort}; // MAVLink refers to the PX4 simulator interface here
 
-    boost::asio::io_service io_service;
-    boost::asio::serial_port serial_dev;
 
-    int simulator_socket_fd_;
-    int simulator_tcp_client_fd_;
+    int simulator_socket_fd_{0};
+    int simulator_tcp_client_fd_{0};
 
-    int qgc_socket_fd_ {-1};
-    int sdk_socket_fd_ {-1};
+    int qgc_socket_fd_{0};
+    int sdk_socket_fd_{0};
 
-    bool enable_lockstep_ = false;
+    bool enable_lockstep_{false};
 
     // Serial interface
-    mavlink_status_t m_status;
-    mavlink_message_t m_buffer;
-    bool serial_enabled_;
-    std::thread io_thread;
-    std::string device_;
-    
-    std::recursive_mutex mutex;
-    std::mutex actuator_mutex;
+    boost::asio::io_service io_service_{};
+    boost::asio::serial_port serial_dev_;
+    bool serial_enabled_{false};
 
-    std::array<uint8_t, MAX_SIZE> rx_buf;
-    unsigned int baudrate_;
-    std::atomic<bool> tx_in_progress;
-    std::deque<gazebo::MsgBuffer> tx_q;
+    mavlink_status_t m_status_{};
+    mavlink_message_t m_buffer_{};
+    std::thread io_thread_;
+    std::string device_{kDefaultDevice};
+    
+    std::recursive_mutex mutex_;
+    std::mutex actuator_mutex_;
+
+    std::array<uint8_t, MAX_SIZE> rx_buf_{};
+    unsigned int baudrate_{kDefaultBaudRate};
+    std::atomic<bool> tx_in_progress_;
+    std::deque<gazebo::MsgBuffer> tx_q_{};
 
     bool hil_mode_;
     bool hil_state_level_;

@@ -112,6 +112,7 @@ static const std::string kDefaultMagTopic = "/mag";
 static const std::string kDefaultAirspeedTopic = "/airspeed";
 static const std::string kDefaultBarometerTopic = "/baro";
 static const std::string kDefaultWindTopic = "/world_wind";
+static const std::string kDefaultGroundtruthTopic = "/groundtruth";
 
 //! OR operation for the enumeration and unsigned types that returns the bitmask
 template<typename A, typename B>
@@ -140,15 +141,15 @@ protected:
   void OnUpdate(const common::UpdateInfo&  /*_info*/);
 
 private:
-  bool received_first_actuator_;
+  bool received_first_actuator_{false};
   Eigen::VectorXd input_reference_;
 
-  float protocol_version_;
+  float protocol_version_{2.0};
 
   std::unique_ptr<MavlinkInterface> mavlink_interface_;
 
-  std::string namespace_;
-  std::string motor_velocity_reference_pub_topic_;
+  std::string namespace_{kDefaultNamespace};
+  std::string motor_velocity_reference_pub_topic_{kDefaultMotorVelocityReferencePubTopic};
   std::string mavlink_control_sub_topic_;
   std::string link_name_;
 
@@ -156,26 +157,11 @@ private:
   transport::PublisherPtr motor_velocity_reference_pub_;
   transport::SubscriberPtr mav_control_sub_;
 
-  physics::ModelPtr model_;
-  physics::WorldPtr world_;
-  physics::JointPtr left_elevon_joint_;
-  physics::JointPtr right_elevon_joint_;
-  physics::JointPtr elevator_joint_;
-  physics::JointPtr propeller_joint_;
-  physics::JointPtr gimbal_yaw_joint_;
-  physics::JointPtr gimbal_pitch_joint_;
-  physics::JointPtr gimbal_roll_joint_;
-  common::PID propeller_pid_;
-  common::PID elevator_pid_;
-  common::PID left_elevon_pid_;
-  common::PID right_elevon_pid_;
-  bool use_propeller_pid_;
-  bool use_elevator_pid_;
-  bool use_left_elevon_pid_;
-  bool use_right_elevon_pid_;
+  physics::ModelPtr model_{};
+  physics::WorldPtr world_{nullptr};
 
-  bool send_vision_estimation_;
-  bool send_odometry_;
+  bool send_vision_estimation_{false};
+  bool send_odometry_{false};
 
   std::vector<physics::JointPtr> joints_;
   std::vector<common::PID> pids_;
@@ -228,36 +214,36 @@ private:
 
   static const unsigned n_out_max = 16;
 
-  double input_offset_[n_out_max];
-  double input_scaling_[n_out_max];
+  double input_offset_[n_out_max]{};
+  double input_scaling_[n_out_max]{};
   std::string joint_control_type_[n_out_max];
   std::string gztopic_[n_out_max];
-  double zero_position_disarmed_[n_out_max];
-  double zero_position_armed_[n_out_max];
-  int input_index_[n_out_max];
+  double zero_position_disarmed_[n_out_max]{};
+  double zero_position_armed_[n_out_max]{};
+  int input_index_[n_out_max]{};
   transport::PublisherPtr joint_control_pub_[n_out_max];
 
-  transport::SubscriberPtr imu_sub_;
-  transport::SubscriberPtr opticalFlow_sub_;
-  transport::SubscriberPtr irlock_sub_;
-  transport::SubscriberPtr groundtruth_sub_;
-  transport::SubscriberPtr vision_sub_;
-  transport::SubscriberPtr mag_sub_;
-  transport::SubscriberPtr airspeed_sub_;
-  transport::SubscriberPtr baro_sub_;
-  transport::SubscriberPtr wind_sub_;
+  transport::SubscriberPtr imu_sub_{nullptr};
+  transport::SubscriberPtr opticalFlow_sub_{nullptr};
+  transport::SubscriberPtr irlock_sub_{nullptr};
+  transport::SubscriberPtr groundtruth_sub_{nullptr};
+  transport::SubscriberPtr vision_sub_{nullptr};
+  transport::SubscriberPtr mag_sub_{nullptr};
+  transport::SubscriberPtr airspeed_sub_{nullptr};
+  transport::SubscriberPtr baro_sub_{nullptr};
+  transport::SubscriberPtr wind_sub_{nullptr};
 
-  Sensor_M sensor_map_; // Map of sensor SubscriberPtr, IDs and orientations
+  Sensor_M sensor_map_{}; // Map of sensor SubscriberPtr, IDs and orientations
 
-  std::string imu_sub_topic_;
-  std::string opticalFlow_sub_topic_;
-  std::string irlock_sub_topic_;
-  std::string groundtruth_sub_topic_;
-  std::string vision_sub_topic_;
-  std::string mag_sub_topic_;
-  std::string airspeed_sub_topic_;
-  std::string baro_sub_topic_;
-  std::string wind_sub_topic_;
+  std::string imu_sub_topic_{kDefaultImuTopic};
+  std::string opticalFlow_sub_topic_{kDefaultOpticalFlowTopic};
+  std::string irlock_sub_topic_{kDefaultIRLockTopic};
+  std::string groundtruth_sub_topic_{kDefaultGroundtruthTopic};
+  std::string vision_sub_topic_{kDefaultVisionTopic};
+  std::string mag_sub_topic_{kDefaultMagTopic};
+  std::string airspeed_sub_topic_{kDefaultAirspeedTopic};
+  std::string baro_sub_topic_{kDefaultBarometerTopic};
+  std::string wind_sub_topic_{kDefaultWindTopic};
 
   std::mutex last_imu_message_mutex_ {};
   std::condition_variable last_imu_message_cond_ {};
@@ -266,37 +252,36 @@ private:
   common::Time last_imu_time_;
   common::Time last_actuator_time_;
 
-  bool mag_updated_;
-  bool baro_updated_;
-  bool diff_press_updated_;
+  bool mag_updated_{false};
+  bool baro_updated_{false};
+  bool diff_press_updated_{false};
 
-  double groundtruth_lat_rad;
-  double groundtruth_lon_rad;
-  double groundtruth_altitude;
+  double groundtruth_lat_rad_{0.0};
+  double groundtruth_lon_rad_{0.0};
+  double groundtruth_altitude_{0.0};
 
-  double imu_update_interval_ = 0.004; ///< Used for non-lockstep
+  double imu_update_interval_{0.004}; ///< Used for non-lockstep
 
   ignition::math::Vector3d velocity_prev_W_;
   ignition::math::Vector3d mag_n_;
   ignition::math::Vector3d wind_vel_;
 
-  double temperature_;
-  double pressure_alt_;
-  double abs_pressure_;
+  double temperature_{25.0};
+  double pressure_alt_{0.0};
+  double abs_pressure_{0.0};
 
-  bool close_conn_ = false;
+  bool close_conn_{false};
 
-  double optflow_distance;
-  double sonar_distance;
-  double diff_pressure_;
+  double optflow_distance_{0.0};
+  double diff_pressure_{0.0};
 
-  bool enable_lockstep_ = false;
-  double speed_factor_ = 1.0;
-  int64_t previous_imu_seq_ = 0;
-  unsigned update_skip_factor_ = 1;
+  bool enable_lockstep_{false};
+  double speed_factor_{1.0};
+  int64_t previous_imu_seq_{0};
+  unsigned update_skip_factor_{1};
 
-  bool hil_mode_;
-  bool hil_state_level_;
+  bool hil_mode_{false};
+  bool hil_state_level_{false};
 
 };
 }

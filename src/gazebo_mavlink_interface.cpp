@@ -23,48 +23,7 @@
 namespace gazebo {
 GZ_REGISTER_MODEL_PLUGIN(GazeboMavlinkInterface);
 
-GazeboMavlinkInterface::GazeboMavlinkInterface() : ModelPlugin(),
-    received_first_actuator_(false),
-    namespace_(kDefaultNamespace),
-    protocol_version_(2.0),
-    motor_velocity_reference_pub_topic_(kDefaultMotorVelocityReferencePubTopic),
-    use_propeller_pid_(false),
-    use_elevator_pid_(false),
-    use_left_elevon_pid_(false),
-    use_right_elevon_pid_(false),
-    send_vision_estimation_(false),
-    send_odometry_(false),
-    imu_sub_topic_(kDefaultImuTopic),
-    opticalFlow_sub_topic_(kDefaultOpticalFlowTopic),
-    irlock_sub_topic_(kDefaultIRLockTopic),
-    vision_sub_topic_(kDefaultVisionTopic),
-    mag_sub_topic_(kDefaultMagTopic),
-    airspeed_sub_topic_(kDefaultAirspeedTopic),
-    baro_sub_topic_(kDefaultBarometerTopic),
-    sensor_map_ {},
-    wind_sub_topic_(kDefaultWindTopic),
-    model_ {},
-    world_(nullptr),
-    left_elevon_joint_(nullptr),
-    right_elevon_joint_(nullptr),
-    elevator_joint_(nullptr),
-    propeller_joint_(nullptr),
-    gimbal_yaw_joint_(nullptr),
-    gimbal_pitch_joint_(nullptr),
-    gimbal_roll_joint_(nullptr),
-    input_offset_ {},
-    input_scaling_ {},
-    zero_position_disarmed_ {},
-    zero_position_armed_ {},
-    input_index_ {},
-    mag_updated_(false),
-    baro_updated_(false),
-    diff_press_updated_(false),
-    groundtruth_lat_rad(0.0),
-    groundtruth_lon_rad(0.0),
-    groundtruth_altitude(0.0),
-    hil_mode_(false),
-    hil_state_level_(false) {
+GazeboMavlinkInterface::GazeboMavlinkInterface() : ModelPlugin(){
       mavlink_interface_ = std::make_unique<MavlinkInterface>();
 
 }
@@ -197,7 +156,7 @@ void GazeboMavlinkInterface::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf
   getSdfParam<std::string>(_sdf, "magSubTopic", mag_sub_topic_, mag_sub_topic_);
   getSdfParam<std::string>(_sdf, "airspeedSubTopic", airspeed_sub_topic_, airspeed_sub_topic_);
   getSdfParam<std::string>(_sdf, "baroSubTopic", baro_sub_topic_, baro_sub_topic_);
-  groundtruth_sub_topic_ = "/groundtruth";
+  getSdfParam<std::string>(_sdf, "groundtruthSubTopic", groundtruth_sub_topic_, groundtruth_sub_topic_);
 
   // set input_reference_ from inputs.control
   input_reference_.resize(n_out_max);
@@ -656,9 +615,9 @@ void GazeboMavlinkInterface::SendSensorMessages()
 
   mavlink_hil_sensor_t sensor_msg;
 #if GAZEBO_MAJOR_VERSION >= 9
-  sensor_msg.time_usec = world_->SimTime().Double() * 1e6;
+  sensor_msg.time_usec = std::round(world_->SimTime().Double() * 1e6);
 #else
-  sensor_msg.time_usec = world_->GetSimTime().Double() * 1e6;
+  sensor_msg.time_usec = std::round(world_->GetSimTime().Double() * 1e6);
 #endif
 
   // send always accel and gyro data (not dependent of the bitmask)
@@ -752,9 +711,9 @@ void GazeboMavlinkInterface::SendGroundTruth()
   // send ground truth
   mavlink_hil_state_quaternion_t hil_state_quat;
 #if GAZEBO_MAJOR_VERSION >= 9
-  hil_state_quat.time_usec = world_->SimTime().Double() * 1e6;
+  hil_state_quat.time_usec = std::round(world_->SimTime().Double() * 1e6);
 #else
-  hil_state_quat.time_usec = world_->GetSimTime().Double() * 1e6;
+  hil_state_quat.time_usec = std::round(world_->GetSimTime().Double() * 1e6);
 #endif
   hil_state_quat.attitude_quaternion[0] = q_nb.W();
   hil_state_quat.attitude_quaternion[1] = q_nb.X();
@@ -765,9 +724,9 @@ void GazeboMavlinkInterface::SendGroundTruth()
   hil_state_quat.pitchspeed = omega_nb_b.Y();
   hil_state_quat.yawspeed = omega_nb_b.Z();
 
-  hil_state_quat.lat = groundtruth_lat_rad * 180 / M_PI * 1e7;
-  hil_state_quat.lon = groundtruth_lon_rad * 180 / M_PI * 1e7;
-  hil_state_quat.alt = groundtruth_altitude * 1000;
+  hil_state_quat.lat = groundtruth_lat_rad_ * 180 / M_PI * 1e7;
+  hil_state_quat.lon = groundtruth_lon_rad_ * 180 / M_PI * 1e7;
+  hil_state_quat.alt = groundtruth_altitude_ * 1000;
 
   hil_state_quat.vx = vel_n.X() * 100;
   hil_state_quat.vy = vel_n.Y() * 100;
@@ -824,9 +783,9 @@ void GazeboMavlinkInterface::GpsCallback(GpsPtr& gps_msg, const int& id) {
 
 void GazeboMavlinkInterface::GroundtruthCallback(GtPtr& groundtruth_msg) {
   // update groundtruth lat_rad, lon_rad and altitude
-  groundtruth_lat_rad = groundtruth_msg->latitude_rad();
-  groundtruth_lon_rad = groundtruth_msg->longitude_rad();
-  groundtruth_altitude = groundtruth_msg->altitude();
+  groundtruth_lat_rad_ = groundtruth_msg->latitude_rad();
+  groundtruth_lon_rad_ = groundtruth_msg->longitude_rad();
+  groundtruth_altitude_ = groundtruth_msg->altitude();
   // the rest of the data is obtained directly on this interface and sent to
   // the FCU
 }
@@ -870,7 +829,7 @@ void GazeboMavlinkInterface::LidarCallback(LidarPtr& lidar_message, const int& i
 
   // distance needed for optical flow message
   if (sensor_msg.orientation == MAV_SENSOR_ORIENTATION::MAV_SENSOR_ROTATION_PITCH_270) {
-    optflow_distance = lidar_message->current_distance();  // [m]
+    optflow_distance_ = lidar_message->current_distance();  // [m]
   }
 
   mavlink_message_t msg;
@@ -901,7 +860,7 @@ void GazeboMavlinkInterface::OpticalFlowCallback(OpticalFlowPtr& opticalFlow_mes
   sensor_msg.temperature = opticalFlow_message->temperature();
   sensor_msg.quality = opticalFlow_message->quality();
   sensor_msg.time_delta_distance_us = opticalFlow_message->time_delta_distance_us();
-  sensor_msg.distance = optflow_distance;
+  sensor_msg.distance = optflow_distance_;
 
   mavlink_message_t msg;
   mavlink_msg_hil_optical_flow_encode_chan(1, 200, MAVLINK_COMM_0, &msg, &sensor_msg);
@@ -941,7 +900,7 @@ void GazeboMavlinkInterface::SonarCallback(SonarPtr& sonar_message, const int& i
 
   // distance needed for optical flow message
   if (sensor_msg.orientation == MAV_SENSOR_ORIENTATION::MAV_SENSOR_ROTATION_PITCH_270) {
-    optflow_distance = sonar_message->current_distance();  // [m]
+    optflow_distance_ = sonar_message->current_distance();  // [m]
   }
 
   mavlink_message_t msg;

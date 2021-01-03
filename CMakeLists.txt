@@ -29,6 +29,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+include(ccache)
 include(GNUInstallDirs)
 
 #######################
@@ -45,18 +46,30 @@ option(SEND_ODOMETRY_DATA "Send Mavlink ODOMETRY msgs" OFF)
 find_package(Boost 1.58 REQUIRED COMPONENTS system thread filesystem)
 find_package(gazebo REQUIRED)
 find_package(PkgConfig REQUIRED)
+pkg_search_module(GLIB REQUIRED glib-2.0)
 # Note: If using catkin, Python 2 is found since it points
 # to the Python libs installed with the ROS distro
 if (NOT CATKIN_DEVEL_PREFIX)
 	find_package(PythonInterp 3 REQUIRED)
 else()
-	find_package(PythonInterp REQUIRED)
+	find_package(roscpp REQUIRED)
+	message(STATUS "${roscpp_version}")
+	if(${roscpp_VERSION}  VERSION_LESS "1.15.0")
+		find_package(PythonInterp REQUIRED)
+	else()
+		find_package(PythonInterp 3 REQUIRED)
+	endif()
 endif()
 find_package(OpenCV REQUIRED)
 find_package(TinyXML REQUIRED)
 if (BUILD_GSTREAMER_PLUGIN)
   set(GStreamer_FIND_VERSION "1.0")
   find_package(GStreamer REQUIRED)
+  # GStreamer requires ICU on Mac OS
+  if (APPLE)
+    set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/icu4c/lib/pkgconfig")
+    pkg_search_module(ICU_UC icu-uc)
+  endif()
   if (GSTREAMER_FOUND)
     if("${GAZEBO_VERSION}" VERSION_LESS "8.0")
       find_package (Qt4)
@@ -194,15 +207,20 @@ link_libraries(
   ${Boost_TIMER_LIBRARY_RELEASE}
   ${GAZEBO_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${PROTOBUF_LIBRARY}
   )
 
 if (GSTREAMER_FOUND)
   link_libraries(
     ${GSTREAMER_LIBRARIES}
-    glib-2.0
+    ${GLIB_LDFLAGS}
     gobject-2.0
   )
+
+  if (APPLE)
+    link_libraries(
+      ${ICU_UC_LDFLAGS}
+    )
+  endif()
 endif()
 
 link_directories(
@@ -220,7 +238,6 @@ set(enable_ground_truth "false")
 set(enable_logging "false")
 set(enable_camera "false")
 set(enable_wind "false")
-set(rotors_description_dir "${CMAKE_CURRENT_SOURCE_DIR}/models/rotors_description")
 set(scripts_dir "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 # set the vision estimation to be sent if set by the CMake option SEND_VISION_ESTIMATION_DATA
 set(send_vision_estimation "false")
@@ -236,24 +253,12 @@ if (SEND_ODOMETRY_DATA)
   set(send_vision_estimation "false")
 endif()
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/models/iris/iris.sdf
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/models/iris/iris.sdf
-  COMMAND ${PYTHON_EXECUTABLE} ${scripts_dir}/xacro.py -o  ${rotors_description_dir}/urdf/iris_base.urdf  ${rotors_description_dir}/urdf/iris_base.xacro enable_mavlink_interface:=${enable_mavlink_interface} enable_ground_truth:=${enable_ground_truth} enable_wind:=${enable_wind} enable_logging:=${enable_logging} rotors_description_dir:=${rotors_description_dir} send_vision_estimation:=${send_vision_estimation} send_odometry:=${send_odometry}
-  COMMAND gz sdf -p  ${rotors_description_dir}/urdf/iris_base.urdf >> ${CMAKE_CURRENT_SOURCE_DIR}/models/iris/iris.sdf
-  COMMAND rm -f ${rotors_description_dir}/urdf/iris_base.urdf
-  DEPENDS ${rotors_description_dir}/urdf/iris.xacro
-  DEPENDS ${rotors_description_dir}/urdf/iris_base.xacro
-  DEPENDS ${rotors_description_dir}/urdf/component_snippets.xacro
-  )
-add_custom_target(sdf ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/models/iris/iris.sdf)
-
-
 #-----------#
 # Functions #
 #-----------#
 
 function(glob_generate target file_glob)
+  file(READ .gitignore gitignore_content)
   file(GLOB_RECURSE glob_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${file_glob})
 	set(gen_files)
 	foreach(glob_file ${glob_files})
@@ -263,15 +268,21 @@ function(glob_generate target file_glob)
 		set(in_file ${CMAKE_CURRENT_SOURCE_DIR}/${glob_file})
 		file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${file_dir})
 		set(out_file ${CMAKE_CURRENT_SOURCE_DIR}/${file_name})
-		string(REGEX REPLACE ".sdf" "-gen.sdf" out_file ${out_file})
+		string(REGEX REPLACE ".sdf" ".sdf" out_file ${out_file})
 		if (${file_ext} STREQUAL "jinja")
 			add_custom_command(OUTPUT ${out_file}
-        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/jinja_gen.py
-        ${in_file} ${CMAKE_CURRENT_SOURCE_DIR}
-				DEPENDS ${in_file}
+				COMMAND
+					${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/jinja_gen.py ${in_file} ${CMAKE_CURRENT_SOURCE_DIR}
+				DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/jinja_gen.py ${in_file}
 				VERBATIM
 				)
 			list(APPEND gen_files_${target} ${out_file})
+			string(REGEX REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" gitignore_str ${in_file})
+			string(REGEX REPLACE ".jinja" "" gitignore_str ${gitignore_str})
+			string(FIND ${gitignore_content} ${gitignore_str} gitignore_substr)
+			if(${gitignore_substr} EQUAL -1)
+				file(APPEND .gitignore ${gitignore_str} "\n")
+			endif()
 		endif()
 	endforeach()
 	add_custom_target(${target} ALL DEPENDS ${gen_files_${target}})
@@ -410,7 +421,7 @@ if (GSTREAMER_FOUND)
   if("${GAZEBO_VERSION}" VERSION_LESS "8.0")
     QT4_WRAP_CPP(headers_MOC include/gazebo_video_stream_widget.h)
     add_library(gazebo_video_stream_widget SHARED ${headers_MOC} src/gazebo_video_stream_widget.cpp)
-    target_link_libraries(gazebo_video_stream_widget ${GAZEBO_LIBRARIES} ${QT_LIBRARIES} ${PROTOBUF_LIBRARIES})
+    target_link_libraries(gazebo_video_stream_widget ${GAZEBO_LIBRARIES} ${QT_LIBRARIES})
     set(plugins
       ${plugins}
       gazebo_video_stream_widget
@@ -419,7 +430,7 @@ if (GSTREAMER_FOUND)
   else()
     QT5_WRAP_CPP(headers_MOC include/gazebo_video_stream_widget.h)
     add_library(gazebo_video_stream_widget SHARED ${headers_MOC} src/gazebo_video_stream_widget.cpp)
-    target_link_libraries(gazebo_video_stream_widget ${GAZEBO_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${PROTOBUF_LIBRARIES} ${Qt5Test_LIBRARIES})
+    target_link_libraries(gazebo_video_stream_widget ${GAZEBO_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Test_LIBRARIES})
     set(plugins
       ${plugins}
       gazebo_video_stream_widget
