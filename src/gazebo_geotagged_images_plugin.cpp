@@ -40,6 +40,21 @@ static void* start_thread(void* param) {
 
 GeotaggedImagesPlugin::GeotaggedImagesPlugin()
     : SensorPlugin()
+    , _imageCounter(0)
+    , _width(0)
+    , _height(0)
+    , _depth(0)
+    , _destWidth(0)
+    , _destHeight(0)
+    , _captureCount(0)
+    , _captureInterval(0.0)
+    , _fd(-1)
+    , _mode(CAMERA_MODE_VIDEO)
+    , _captureMode(CAPTURE_DISABLED)
+    , _hfov(1.57)
+    , _zoom(1.0)
+    , _maxZoom(8.0)
+    , _zoom_cmd(0)
 {
 }
 
@@ -141,7 +156,7 @@ void GeotaggedImagesPlugin::Load(sensors::SensorPtr sensor, sdf::ElementPtr sdf)
     _newFrameConnection = _camera->ConnectNewImageFrame(
                               boost::bind(&GeotaggedImagesPlugin::OnNewFrame, this, _1));
 
-    _gpsSub = _node_handle->Subscribe("~/" + rootModelName + "/link/gps", &GeotaggedImagesPlugin::OnNewGpsPosition, this);
+    _gpsSub = _node_handle->Subscribe("~/" + rootModelName + "/gps", &GeotaggedImagesPlugin::OnNewGpsPosition, this);
 
     _storageDir = "frames";
     boost::filesystem::remove_all(_storageDir); //clear existing images
@@ -227,10 +242,7 @@ void GeotaggedImagesPlugin::OnNewFrame(const unsigned char * image)
              " -gpsmeasuremode=3-d -gpssatellites=13 -gpsaltitude=%.3lf -overwrite_original %s &>/dev/null",
              north_south, east_west, lat, lon, _lastGpsPosition.Z(), file_name);
 
-    if (system(gps_tag_command) < 0) {
-        gzerr << "gps tag command failed" << endl;
-        return;
-    }
+    system(gps_tag_command);
 
     gzmsg << "Took picture: " << file_name << endl;
 
@@ -537,9 +549,9 @@ void GeotaggedImagesPlugin::_handle_camera_info(const mavlink_message_t *pMsg, s
 {
     gzdbg << "Send camera info" << endl;
     _send_cmd_ack(pMsg->sysid, pMsg->compid, MAV_CMD_REQUEST_CAMERA_INFORMATION, MAV_RESULT_ACCEPTED, srcaddr);
-    static const char vendor[MAVLINK_MSG_CAMERA_INFORMATION_FIELD_VENDOR_NAME_LEN] = "PX4.io";
-    static const char model[MAVLINK_MSG_CAMERA_INFORMATION_FIELD_MODEL_NAME_LEN] = "Gazebo";
-    static const char uri[MAVLINK_MSG_CAMERA_INFORMATION_FIELD_CAM_DEFINITION_URI_LEN] = {};
+    static const char* vendor = "PX4.io";
+    static const char* model  = "Gazebo";
+    char uri[128] = {};
     uint32_t camera_capabilities = CAMERA_CAP_FLAGS_CAPTURE_IMAGE | CAMERA_CAP_FLAGS_CAPTURE_VIDEO |
             CAMERA_CAP_FLAGS_HAS_MODES | CAMERA_CAP_FLAGS_HAS_BASIC_ZOOM |
             CAMERA_CAP_FLAGS_HAS_VIDEO_STREAM;
@@ -734,7 +746,6 @@ void GeotaggedImagesPlugin::_handle_storage_info(const mavlink_message_t *pMsg, 
     float total_mib     = 0.0f;
     float available_mib = 0.0f;
     boost::filesystem::space_info si = boost::filesystem::space(".");
-    const std::string storage_name = "SITL Camera Storage";
     available_mib = (float)((double)si.available / (1024.0 * 1024.0));
     total_mib     = (float)((double)si.capacity  / (1024.0 * 1024.0));
     _send_cmd_ack(pMsg->sysid, pMsg->compid, MAV_CMD_REQUEST_STORAGE_INFORMATION, MAV_RESULT_ACCEPTED, srcaddr);
@@ -752,9 +763,7 @@ void GeotaggedImagesPlugin::_handle_storage_info(const mavlink_message_t *pMsg, 
         total_mib - available_mib,          // used_capacity,
         available_mib,
         NAN,                                // read_speed,
-        NAN,                                // write_speed
-        STORAGE_TYPE_OTHER,                 // storage type
-        storage_name.c_str()                // storage name
+        NAN                                 // write_speed
     );
     _send_mavlink_message(&msg, srcaddr);
 }
