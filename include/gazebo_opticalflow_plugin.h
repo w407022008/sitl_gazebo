@@ -39,7 +39,7 @@
 #include "flow_opencv.hpp"
 #include "flow_px4.hpp"
 
-#define DEFAULT_RATE 20
+#define DEFAULT_RATE 100
 #define HAS_GYRO true
 
 using namespace cv;
