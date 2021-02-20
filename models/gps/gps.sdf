@@ -80,7 +80,7 @@
           <robotNamespace></robotNamespace>
           <homeLatitude>48.8442</homeLatitude>
           <homeLongitude>2.3593</homeLongitude>
-          <homeAltitude>0</homeAltitude>
+          <homeAltitude>35.0</homeAltitude>
           <gpsNoise>false</gpsNoise>
           <gpsXYRandomWalk>2.0</gpsXYRandomWalk>
           <gpsZRandomWalk>4.0</gpsZRandomWalk>

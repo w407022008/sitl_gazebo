@@ -440,6 +440,83 @@
 
 
 
+<!--*********************************** laser_downward_link *********************************-->
+    <link name="laser_downward_link">
+      <pose>0.02 0 0.021 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.01</mass>
+        <inertia>
+          <ixx>2.1733e-6</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>2.1733e-6</iyy>
+          <iyz>0</iyz>
+          <izz>1.8e-7</izz>
+        </inertia>
+      </inertial>
+      <collision name='laser_downward_link_collision'>
+      	<pose>0 0 0 -1.5707963259 0 1.5707963259</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://lidar/meshes/Tfmini_s.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='laser_downward_link_visual'>
+      	<pose>0 0 0 -1.5707963259 0 1.5707963259</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://lidar/meshes/Tfmini_s.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/White</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <sensor name="laser_downward" type="ray">
+        <always_on>1</always_on>
+        <update_rate>300</update_rate>
+        <visualize>true</visualize>
+        <pose>0 0 0 0 1.57079633 0</pose>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.001</min_angle>
+              <max_angle>0.001</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.3</min>
+            <max>12</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.06</stddev>
+          </noise>
+        </ray>
+        <plugin name="gazebo_ros_laser_downward_controller" filename="libgazebo_ros_laser.so">
+          <robotNamespace></robotNamespace>
+          <topicName>laser_downward/scan</topicName>
+          <frameName>laser_downward_frame</frameName>
+        </plugin>
+      </sensor>
+    </link>
+    <joint name="laser_downward_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>laser_downward_link</child>
+    </joint>
+
+
 <!--*********************************** laser_upward_link *********************************-->
     <link name="laser_upward_link">
       <pose>0.013208 0 0.1187 0 0 0</pose>
@@ -750,11 +827,26 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    <!-- PUB Ground Truth -->
+    <!--
     <plugin name='groundtruth_plugin' filename='libgazebo_groundtruth_plugin.so'>
       <robotNamespace/>
       <frameName>map</frameName>
       <topicName>odom</topicName>
       <updateRate>30.0</updateRate>
+    </plugin>
+    -->
+    <!-- 模拟vicon系统 -->
+    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+      <robotNamespace/>
+      <alwaysOn>true</alwaysOn>
+      <updateRate>50.0</updateRate>
+      <bodyName>base_link</bodyName>
+      <topicName>quad_isir/ground_truth/local</topicName>
+      <gaussianNoise>0.00</gaussianNoise>
+      <frameName>map</frameName>
+      <xyzOffsets>0 0 0</xyzOffsets>
+      <rpyOffsets>0 0 0</rpyOffsets>
     </plugin>
     <plugin name='rotors_gazebo_imu_plugin' filename='libgazebo_imu_plugin.so'>
       <robotNamespace/>
@@ -771,7 +863,7 @@
     </plugin>
     <plugin name='magnetometer_plugin' filename='libgazebo_magnetometer_plugin.so'>
       <robotNamespace/>
-      <pubRate>100</pubRate>
+      <pubRate>20</pubRate>
       <noiseDensity>0.0004</noiseDensity>
       <randomWalk>6.4e-06</randomWalk>
       <biasCorrelationTime>600</biasCorrelationTime>
@@ -779,7 +871,7 @@
     </plugin>
     <plugin name='barometer_plugin' filename='libgazebo_barometer_plugin.so'>
       <robotNamespace/>
-      <pubRate>100</pubRate>
+      <pubRate>10</pubRate>
       <baroTopic>/baro</baroTopic>
     </plugin>
     <plugin name='mavlink_interface' filename='libgazebo_mavlink_interface.so'>
