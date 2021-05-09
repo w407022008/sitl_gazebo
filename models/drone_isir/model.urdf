@@ -1,0 +1,312 @@
+<?xml version="1.0" ?>
+<robot name="drone_isir">
+  <joint name="drone_isir__rotor_0_joint" type="revolute">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__rotor_0"/>
+    <origin rpy="0  0  0" xyz="0.078 -0.1    0"/>
+    <axis xyz="0  0  1"/>
+    <limit effort="0.0" lower="-1e+16" upper="1e+16" velocity="0.0"/>
+  </joint>
+  <joint name="drone_isir__rotor_1_joint" type="revolute">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__rotor_1"/>
+    <origin rpy="0  0  0" xyz="-0.078  0.1    0"/>
+    <axis xyz="0  0  1"/>
+    <limit effort="0.0" lower="-1e+16" upper="1e+16" velocity="0.0"/>
+  </joint>
+  <joint name="drone_isir__rotor_2_joint" type="revolute">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__rotor_2"/>
+    <origin rpy="0  0  0" xyz="0.078  0.1    0"/>
+    <axis xyz="0  0  1"/>
+    <limit effort="0.0" lower="-1e+16" upper="1e+16" velocity="0.0"/>
+  </joint>
+  <joint name="drone_isir__rotor_3_joint" type="revolute">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__rotor_3"/>
+    <origin rpy="0  0  0" xyz="-0.078 -0.1    0"/>
+    <axis xyz="0  0  1"/>
+    <limit effort="0.0" lower="-1e+16" upper="1e+16" velocity="0.0"/>
+  </joint>
+  <joint name="drone_isir__pixhawk_joint" type="fixed">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__pixhawk__link"/>
+    <origin rpy="0  0  0" xyz="-0.037  0     0.118"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="drone_isir__gps_joint" type="fixed">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__gps__link"/>
+    <origin rpy="0  0  0" xyz="0.04   0     0.115"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="drone_isir__depth_camera_joint" type="fixed">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__depthcamera_link"/>
+    <origin rpy="0  0  0" xyz="0.0809  0      0.104"/>
+    <axis xyz="0  0  1"/>
+    <limit effort="0.0" lower="0.0" upper="0.0" velocity="0.0"/>
+  </joint>
+  <joint name="drone_isir__laser_downward_joint" type="fixed">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__laser_downward_link"/>
+    <origin rpy="0  0  0" xyz="0.02   0     0.021"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="drone_isir__laser_upward_joint" type="fixed">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__laser_upward_link"/>
+    <origin rpy="0  0  0" xyz="0.0132  0      0.1187"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="drone_isir__laser_hor_joint" type="fixed">
+    <parent link="drone_isir__base_link"/>
+    <child link="drone_isir__laser_hor_link"/>
+    <origin rpy="0  0  0" xyz="0  0  0"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <link name="drone_isir__base_link">
+    <inertial>
+      <mass value="1.5"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0.029125" ixy="0" ixz="0" iyy="0.029125" iyz="0" izz="0.055225"/>
+    </inertial>
+    <collision name="drone_isir__base_link_collision">
+      <origin rpy="0    0   -1.57" xyz="0   0   0.1"/>
+      <geometry>
+        <box size="0.1 0.1 0.2"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__base_link_visual">
+      <origin rpy="0    0   -1.57" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/body.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__rotor_0">
+    <inertial>
+      <mass value="0.005"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="9.75e-07" ixy="0" ixz="0" iyy="0.000273104" iyz="0" izz="0.000274004"/>
+    </inertial>
+    <collision name="drone_isir__rotor_0_collision">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <cylinder length="0.01" radius="0.064"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__rotor_0_visual">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/propeller1.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__rotor_1">
+    <inertial>
+      <mass value="0.005"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="9.75e-07" ixy="0" ixz="0" iyy="0.000273104" iyz="0" izz="0.000274004"/>
+    </inertial>
+    <collision name="drone_isir__rotor_1_collision">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <cylinder length="0.01" radius="0.064"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__rotor_1_visual">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/propeller2.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__rotor_2">
+    <inertial>
+      <mass value="0.005"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="9.75e-07" ixy="0" ixz="0" iyy="0.000273104" iyz="0" izz="0.000274004"/>
+    </inertial>
+    <collision name="drone_isir__rotor_2_collision">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <cylinder length="0.01" radius="0.064"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__rotor_2_visual">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/propeller3.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__rotor_3">
+    <inertial>
+      <mass value="0.005"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="9.75e-07" ixy="0" ixz="0" iyy="0.000273104" iyz="0" izz="0.000274004"/>
+    </inertial>
+    <collision name="drone_isir__rotor_3_collision">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <cylinder length="0.01" radius="0.064"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__rotor_3_visual">
+      <origin rpy="0  0  0" xyz="0     0     0.076"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/propeller4.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__depthcamera_link">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="4.15e-6" ixy="0" ixz="0" iyy="2.407e-6" iyz="0" izz="2.407e-6"/>
+    </inertial>
+    <collision name="drone_isir__3D_camera_collision">
+      <origin rpy="0      -1.57079 -3.1415" xyz="0      0      0.0067"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/3D_camera.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__3D_camera_visual">
+      <origin rpy="0      -1.57079 -3.1415" xyz="0      0      0.0067"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/3D_camera.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__laser_downward_link">
+    <inertial>
+      <mass value="0.01"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="2.1733e-6" ixy="0" ixz="0" iyy="2.1733e-6" iyz="0" izz="1.8e-7"/>
+    </inertial>
+    <collision name="drone_isir__laser_downward_link_collision">
+      <origin rpy="-1.57079  0       1.57079" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Tfmini_s.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__laser_downward_link_visual">
+      <origin rpy="-1.57079  0       1.57079" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Tfmini_s.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__laser_upward_link">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="2.1733e-6" ixy="0" ixz="0" iyy="2.1733e-6" iyz="0" izz="1.8e-7"/>
+    </inertial>
+    <collision name="drone_isir__laser_upward_link_collision">
+      <origin rpy="1.5708  0      1.5708" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_up.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__laser_upward_link_visual">
+      <origin rpy="1.5708  0      1.5708" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_up.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__laser_hor_link">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="2.1733e-6" ixy="0" ixz="0" iyy="2.1733e-6" iyz="0" izz="1.8e-7"/>
+    </inertial>
+    <collision name="drone_isir__laser_front_right_link_collision">
+      <origin rpy="3.14159  0.7854   0.7854" xyz="0.01873 -0.01873  0.0485"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_1.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <collision name="drone_isir__laser_back_right_link_collision">
+      <origin rpy="3.14159 -0.78539 -0.7854" xyz="-0.01868 -0.01879  0.04857"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_2.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <collision name="drone_isir__laser_back_left_link_collision">
+      <origin rpy="3.14159  0.78539 -2.36207" xyz="-0.01889  0.01879  0.04857"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_3.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <collision name="drone_isir__laser_front_left_collision">
+      <origin rpy="3.14159 -0.7854   2.35619" xyz="0.01894  0.01873  0.0485"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_4.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__laser_front_right_link_visual">
+      <origin rpy="3.14159  0.7854   0.7854" xyz="0.01873 -0.01873  0.0485"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_1.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <visual name="drone_isir__laser_back_right_link_visual">
+      <origin rpy="3.14159 -0.78539 -0.7854" xyz="-0.01868 -0.01879  0.04857"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_2.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <visual name="drone_isir__laser_back_left_link_visual">
+      <origin rpy="3.14159  0.78539 -2.36207" xyz="-0.01889  0.01879  0.04857"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_3.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <visual name="drone_isir__laser_front_left_visual">
+      <origin rpy="3.14159 -0.7854   2.35619" xyz="0.01894  0.01873  0.0485"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/Laser_4.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__pixhawk__link">
+    <inertial>
+      <mass value="0.038"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="2.8899759404666665e-05" ixy="0" ixz="0" iyy="2.1819023843999995e-05" iyz="0" izz="8.616093260666668e-06"/>
+    </inertial>
+    <collision name="drone_isir__pixhawk__base_link_fixed_joint_lump__Laser_down_collision_8">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/pixhawk.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <visual name="drone_isir__pixhawk__base_link_fixed_joint_lump__Laser_down_visual_8">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <mesh filename="package://PATHTOMESHES/meshes/pixhawk.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="drone_isir__gps__link">
+    <inertial>
+      <mass value="0.015"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="1e-05" ixy="0" ixz="0" iyy="1e-05" iyz="0" izz="1e-05"/>
+    </inertial>
+    <visual name="drone_isir__gps__visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.002" radius="0.01"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>
