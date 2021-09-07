@@ -522,7 +522,7 @@
       <alwaysOn>true</alwaysOn>
       <updateRate>50.0</updateRate>
       <bodyName>base_link</bodyName>
-      <topicName>/prometheus/ground_truth/p300_basic</topicName>
+      <topicName>/prometheus/ground_truth/odometry</topicName>
       <gaussianNoise>0.00</gaussianNoise>
       <frameName>world</frameName>
       <xyzOffsets>0 0 0</xyzOffsets>
